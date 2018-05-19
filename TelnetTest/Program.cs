@@ -75,7 +75,7 @@ namespace TelnetTest
                         //TODO:密碼驗證 Default:nono
                         if (message == "nono")
                         {
-                            s.sendMessageToClient(c, "\r\n登入成功");
+                            s.sendMessageToClient(c, "\r\n登入成功\r\n");
                             c.setStatus(EClientStatus.LoggedIn);
                         }
                         else

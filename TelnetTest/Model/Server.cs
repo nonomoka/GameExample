@@ -359,7 +359,7 @@ namespace TelnetTest.Model
 
                         else
                         {
-                            client.appendReceivedData(Encoding.ASCII.GetString(data, 0, bytesReceived));
+                            client.appendReceivedData(Encoding.GetEncoding("Big5").GetString(data, 0, bytesReceived));
 
                             // Echo back the received character
                             // if client is not writing any password
