@@ -95,6 +95,11 @@ namespace TelnetTest.Model
             serverSocket.BeginAccept(new AsyncCallback(handleIncomingConnection), serverSocket);
         }
 
+        public void ClientStart(string ip ,int port)
+        {
+            serverSocket.Connect(new IPEndPoint(IPAddress.Parse(ip), port));
+        }
+
         /// <summary>
         /// Stops the server.
         /// </summary>
@@ -329,7 +334,10 @@ namespace TelnetTest.Model
                 {
                     string receivedData = client.getReceivedData();
 
-                    // 0x2E = '.', 0x0D = carriage return, 0x0A = new line
+                    /* 0x2E = '.', 
+                       0x0D = carriage return, 
+                       0x0A = new line
+                    */
                     if ((data[0] == 0x2E && data[1] == 0x0D && receivedData.Length == 0) ||
                         (data[0] == 0x0D && data[1] == 0x0A))
                     {

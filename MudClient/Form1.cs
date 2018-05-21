@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using TelnetTest.Model;
 
 namespace MudClient
 {
@@ -16,7 +17,7 @@ namespace MudClient
     {
         //對話框記錄
         AutoCompleteStringCollection autoComplete = new AutoCompleteStringCollection();
-        private static SocketClient client;
+        private static Server s;
         public Form1()
         {
             InitializeComponent();
@@ -37,7 +38,7 @@ namespace MudClient
                     this.txbInputBox.AutoCompleteCustomSource.Add(input);
                 }
                 byte[] data = Encoding.GetEncoding("Big5").GetBytes(input);
-                client.clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(sendData), client.clientSocket);
+                //client.clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(sendData), client.clientSocket);
                 this.txbInputBox.Text = String.Empty;
                 this.txbInputBox.Focus();
             }
@@ -45,55 +46,25 @@ namespace MudClient
         #region 連線部分
         private void btnConnection_Click(object sender, EventArgs e)
         {
-            client = new SocketClient(IPAddress.Parse(txbServerIP.Text.Trim()), int.Parse(txbPort.Text.Trim()));
-            client.ClientConnected += clientConnected;
-            client.ClientDisconnected += clientDisconnected;
-            client.ConnectionBlocked += connectionBlocked;
-            client.MessageReceived += messageReceived;
-            client.Start();
+            s = new Server(IPAddress.Parse(txbServerIP.Text.Trim()));
+            s.ClientConnected += ClientConnected;
+            s.ClientStart(txbServerIP.Text.Trim(), int.Parse(txbPort.Text.Trim()));
+            //client = new SocketClient(IPAddress.Parse(txbServerIP.Text.Trim()), int.Parse(txbPort.Text.Trim()));
+            //client.ClientConnected += clientConnected;
+            //client.ClientDisconnected += clientDisconnected;
+            //client.ConnectionBlocked += connectionBlocked;
+            //client.MessageReceived += messageReceived;
+            //client.Start();
         }
 
-        private void clientConnected()
+        private void ClientConnected(Client c)
         {
-            this.txbMainWindow.AppendText("Connected!! \r\n");
+            this.txbMainWindow.AppendText(c.getReceivedData());
         }
 
-        private void clientDisconnected()
+        private void clientDisconnected(Client c)
         {
-            this.txbMainWindow.AppendText("Disconnected!! \r\n");
-        }
-
-        private void connectionBlocked(IPEndPoint ep)
-        {
-            this.txbMainWindow.AppendText("Blocked!! \r\n");
-        }
-
-        private void messageReceived(string message)
-        {
-            this.txbMainWindow.AppendText(message +"\r\n");
-        }
-
-        private void sendData(IAsyncResult result)
-        {
-            try
-            {
-                Socket clientSocket = (Socket)result.AsyncState;
-
-                clientSocket.EndSend(result);
-
-                clientSocket.BeginReceive(new byte[] { }, 0, 1024, SocketFlags.None, new AsyncCallback(receiveData), clientSocket);
-            }
-
-            catch { }
-        }
-
-        private void receiveData(IAsyncResult result)
-        {
-            try
-            {
-                this.txbMainWindow.AppendText("");
-            }
-            catch { }
+            this.txbMainWindow.AppendText(c.getReceivedData());
         }
 
         private void txbPort_KeyPress(object sender, KeyPressEventArgs e)
