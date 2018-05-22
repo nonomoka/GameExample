@@ -38,6 +38,7 @@ namespace MudClient
                     this.txbInputBox.AutoCompleteCustomSource.Add(input);
                 }
                 byte[] data = Encoding.GetEncoding("Big5").GetBytes(input);
+                //s.ServerSocket.Send(data, 0, data.Length, SocketFlags.None);
                 //client.clientSocket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(sendData), client.clientSocket);
                 this.txbInputBox.Text = String.Empty;
                 this.txbInputBox.Focus();
@@ -48,23 +49,17 @@ namespace MudClient
         {
             s = new Server(IPAddress.Parse(txbServerIP.Text.Trim()));
             s.ClientConnected += ClientConnected;
-            s.ClientStart(txbServerIP.Text.Trim(), int.Parse(txbPort.Text.Trim()));
-            //client = new SocketClient(IPAddress.Parse(txbServerIP.Text.Trim()), int.Parse(txbPort.Text.Trim()));
-            //client.ClientConnected += clientConnected;
-            //client.ClientDisconnected += clientDisconnected;
-            //client.ConnectionBlocked += connectionBlocked;
-            //client.MessageReceived += messageReceived;
-            //client.Start();
+            //s.ClientStart(txbServerIP.Text.Trim(), int.Parse(txbPort.Text.Trim()));
         }
 
         private void ClientConnected(Client c)
         {
-            this.txbMainWindow.AppendText(c.getReceivedData());
+            this.txbMainWindow.AppendText(c.GetReceivedData());
         }
 
         private void clientDisconnected(Client c)
         {
-            this.txbMainWindow.AppendText(c.getReceivedData());
+            this.txbMainWindow.AppendText(c.GetReceivedData());
         }
 
         private void txbPort_KeyPress(object sender, KeyPressEventArgs e)

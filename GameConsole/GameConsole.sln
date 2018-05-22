@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelnetTest", "..\TelnetTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudClient", "..\MudClient\MudClient.csproj", "{FD750560-C455-42AC-A33A-88F3D321026C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketClient", "..\SocketClient\SocketClient.csproj", "{C366FEF9-0B19-43E9-AA7E-562C10A0356A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketServer", "..\SocketServer\SocketServer.csproj", "{207A8C43-BAAD-4174-9B82-1A53AA510FB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{FD750560-C455-42AC-A33A-88F3D321026C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD750560-C455-42AC-A33A-88F3D321026C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD750560-C455-42AC-A33A-88F3D321026C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C366FEF9-0B19-43E9-AA7E-562C10A0356A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C366FEF9-0B19-43E9-AA7E-562C10A0356A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C366FEF9-0B19-43E9-AA7E-562C10A0356A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C366FEF9-0B19-43E9-AA7E-562C10A0356A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{207A8C43-BAAD-4174-9B82-1A53AA510FB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{207A8C43-BAAD-4174-9B82-1A53AA510FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{207A8C43-BAAD-4174-9B82-1A53AA510FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{207A8C43-BAAD-4174-9B82-1A53AA510FB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace TelnetTest.Model
 {
+    public enum EConnectionType
+    {
+        Client = 0,
+        Server = 1,
+    }
     public class Server
     {
         /// <summary>
@@ -17,16 +22,15 @@ namespace TelnetTest.Model
         /// <summary>
         /// Telnet's default port.
         /// </summary>
-        private const int PORT = 23;
-
+        public int port;
         /// <summary>
         /// Server's main socket.
         /// </summary>
-        private Socket serverSocket;
+        public Socket mainSocket;
         /// <summary>
         /// The IP on which to listen.
         /// </summary>
-        private IPAddress ip;
+        public IPAddress ip;
         /// <summary>
         /// The default data size for received data.
         /// </summary>
@@ -44,7 +48,7 @@ namespace TelnetTest.Model
         /// Contains all connected clients indexed
         /// by their socket.
         /// </summary>
-        private Dictionary<Socket, Client> clients;
+        private Dictionary<Socket, Client> clientsList;
 
         public delegate void ConnectionEventHandler(Client c);
         /// <summary>
@@ -71,41 +75,41 @@ namespace TelnetTest.Model
         /// </summary>
         /// <param name="ip">The IP on which to listen to.</param>
         /// <param name="dataSize">Data size for received data.</param>
-        public Server(IPAddress ip, int dataSize = 1024)
+        public Server(EConnectionType type,IPAddress ip,int port, int dataSize = 1024)
         {
+            this.port = port;
             this.ip = ip;
-
             this.dataSize = dataSize;
             this.data = new byte[dataSize];
 
-            this.clients = new Dictionary<Socket, Client>();
-
-            this.acceptIncomingConnections = true;
-
-            this.serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            switch (type)
+            {
+                case EConnectionType.Client:
+                    break;
+                case EConnectionType.Server:
+                    this.clientsList = new Dictionary<Socket, Client>();
+                    this.acceptIncomingConnections = true;
+                    break;
+            }
+            this.mainSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
 
         /// <summary>
         /// Starts the server.
         /// </summary>
-        public void start()
+        public void ServerStart()
         {
-            serverSocket.Bind(new IPEndPoint(ip, PORT));
-            serverSocket.Listen(0);
-            serverSocket.BeginAccept(new AsyncCallback(handleIncomingConnection), serverSocket);
-        }
-
-        public void ClientStart(string ip ,int port)
-        {
-            serverSocket.Connect(new IPEndPoint(IPAddress.Parse(ip), port));
+            mainSocket.Bind(new IPEndPoint(ip, port));
+            mainSocket.Listen(0);
+            mainSocket.BeginAccept(new AsyncCallback(HandleIncomingConnection), mainSocket);
         }
 
         /// <summary>
         /// Stops the server.
         /// </summary>
-        public void stop()
+        public void Stop()
         {
-            serverSocket.Close();
+            mainSocket.Close();
         }
 
         /// <summary>
@@ -114,7 +118,7 @@ namespace TelnetTest.Model
         /// </summary>
         /// <returns>True is connections are allowed;
         /// false otherwise.</returns>
-        public bool incomingConnectionsAllowed()
+        public bool IncomingConnectionsAllowed()
         {
             return acceptIncomingConnections;
         }
@@ -122,7 +126,7 @@ namespace TelnetTest.Model
         /// <summary>
         /// Denies the incoming connections.
         /// </summary>
-        public void denyIncomingConnections()
+        public void DenyIncomingConnections()
         {
             this.acceptIncomingConnections = false;
         }
@@ -130,7 +134,7 @@ namespace TelnetTest.Model
         /// <summary>
         /// Allows the incoming connections.
         /// </summary>
-        public void allowIncomingConnections()
+        public void AllowIncomingConnections()
         {
             this.acceptIncomingConnections = true;
         }
@@ -141,9 +145,9 @@ namespace TelnetTest.Model
         /// </summary>
         /// <param name="c">The client on which
         /// to clear the screen.</param>
-        public void clearClientScreen(Client c)
+        public void ClearClientScreen(Client c)
         {
-            sendMessageToClient(c, "\u001B[1J\u001B[H");
+            SendMessageToClient(c, "\u001B[1J\u001B[H");
         }
 
         /// <summary>
@@ -152,10 +156,10 @@ namespace TelnetTest.Model
         /// </summary>
         /// <param name="c">The client.</param>
         /// <param name="message">The message.</param>
-        public void sendMessageToClient(Client c, string message)
+        public void SendMessageToClient(Client c, string message)
         {
-            Socket clientSocket = getSocketByClient(c);
-            sendMessageToSocket(clientSocket, message);
+            Socket clientSocket = GetSocketByClient(c);
+            SendMessageToSocket(clientSocket, message);
         }
 
         /// <summary>
@@ -164,11 +168,11 @@ namespace TelnetTest.Model
         /// </summary>
         /// <param name="s">The socket.</param>
         /// <param name="message">The message.</param>
-        private void sendMessageToSocket(Socket s, string message)
+        private void SendMessageToSocket(Socket s, string message)
         {
             System.Console.WriteLine(message);
             byte[] data = Encoding.GetEncoding("Big5").GetBytes(message);
-            sendBytesToSocket(s, data);
+            SendBytesToSocket(s, data);
         }
 
         /// <summary>
@@ -176,21 +180,21 @@ namespace TelnetTest.Model
         /// </summary>
         /// <param name="s">The socket.</param>
         /// <param name="data">The bytes.</param>
-        private void sendBytesToSocket(Socket s, byte[] data)
+        private void SendBytesToSocket(Socket s, byte[] data)
         {
-            s.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(sendData), s);
+            s.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendData), s);
         }
 
         /// <summary>
         /// Sends a message to all connected clients.
         /// </summary>
         /// <param name="message">The message.</param>
-        public void sendMessageToAll(string message)
+        public void SendMessageToAll(string message)
         {
-            foreach (Socket s in clients.Keys)
+            foreach (Socket s in clientsList.Keys)
             {
-                try { sendMessageToSocket(s, message); }
-                catch { clients.Remove(s); }
+                try { SendMessageToSocket(s, message); }
+                catch { clientsList.Remove(s); }
             }
         }
 
@@ -200,11 +204,11 @@ namespace TelnetTest.Model
         /// <param name="clientSocket">The client's socket.</param>
         /// <returns>If the socket is found, the client instance
         /// is returned; otherwise null is returned.</returns>
-        private Client getClientBySocket(Socket clientSocket)
+        private Client GetClientBySocket(Socket clientSocket)
         {
             Client c;
 
-            if (!clients.TryGetValue(clientSocket, out c))
+            if (!clientsList.TryGetValue(clientSocket, out c))
                 c = null;
 
             return c;
@@ -216,11 +220,11 @@ namespace TelnetTest.Model
         /// <param name="client">The client instance.</param>
         /// <returns>If the client is found, the socket is
         /// returned; otherwise null is returned.</returns>
-        private Socket getSocketByClient(Client client)
+        private Socket GetSocketByClient(Client client)
         {
             Socket s;
 
-            s = clients.FirstOrDefault(x => x.Value.getClientID() == client.getClientID()).Key;
+            s = clientsList.FirstOrDefault(x => x.Value.GetClientID() == client.GetClientID()).Key;
 
             return s;
         }
@@ -229,9 +233,9 @@ namespace TelnetTest.Model
         /// Kicks the specified client from the server.
         /// </summary>
         /// <param name="client">The client.</param>
-        public void kickClient(Client client)
+        public void KickClient(Client client)
         {
-            closeSocket(getSocketByClient(client));
+            CloseSocket(GetSocketByClient(client));
             ClientDisconnected(client);
         }
 
@@ -240,10 +244,10 @@ namespace TelnetTest.Model
         /// the clients list.
         /// </summary>
         /// <param name="clientSocket">The client socket.</param>
-        private void closeSocket(Socket clientSocket)
+        private void CloseSocket(Socket clientSocket)
         {
             clientSocket.Close();
-            clients.Remove(clientSocket);
+            clientsList.Remove(clientSocket);
         }
 
         /// <summary>
@@ -254,7 +258,7 @@ namespace TelnetTest.Model
         /// Else, the connection blocked event is
         /// triggered.
         /// </summary>
-        private void handleIncomingConnection(IAsyncResult result)
+        private void HandleIncomingConnection(IAsyncResult result)
         {
             try
             {
@@ -264,26 +268,22 @@ namespace TelnetTest.Model
                 {
                     Socket newSocket = oldSocket.EndAccept(result);
 
-                    uint clientID = (uint)clients.Count + 1;
+                    uint clientID = (uint)clientsList.Count + 1;
                     Client client = new Client(clientID, (IPEndPoint)newSocket.RemoteEndPoint);
-                    clients.Add(newSocket, client);
+                    clientsList.Add(newSocket, client);
 
                     // Do Echo
                     // Do Remote Flow Control
                     // Will Echo
                     // Will Suppress Go Ahead
-                    sendBytesToSocket(
+                    SendBytesToSocket(
                         newSocket,
                         new byte[] { 0xff, 0xfd, 0x01, 0xff, 0xfd, 0x21, 0xff, 0xfb, 0x01, 0xff, 0xfb, 0x03 }
                     );
-
-                    client.resetReceivedData();
-
+                    client.ResetReceivedData();
                     ClientConnected(client);
-
-                    serverSocket.BeginAccept(new AsyncCallback(handleIncomingConnection), serverSocket);
+                    mainSocket.BeginAccept(new AsyncCallback(HandleIncomingConnection), mainSocket);
                 }
-
                 else
                 {
                     ConnectionBlocked((IPEndPoint)oldSocket.RemoteEndPoint);
@@ -296,15 +296,13 @@ namespace TelnetTest.Model
         /// <summary>
         /// Sends data to a socket.
         /// </summary>
-        private void sendData(IAsyncResult result)
+        private void SendData(IAsyncResult result)
         {
             try
             {
-                Socket clientSocket = (Socket)result.AsyncState;
-
-                clientSocket.EndSend(result);
-
-                clientSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(receiveData), clientSocket);
+                Socket sendSocket = (Socket)result.AsyncState;
+                sendSocket.EndSend(result);
+                sendSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(ReceiveData), sendSocket);
             }
 
             catch { }
@@ -315,37 +313,34 @@ namespace TelnetTest.Model
         /// It triggers the message received event in
         /// case the client pressed the return key.
         /// </summary>
-        private void receiveData(IAsyncResult result)
+        private void ReceiveData(IAsyncResult result)
         {
             try
             {
-                Socket clientSocket = (Socket)result.AsyncState;
-                Client client = getClientBySocket(clientSocket);
+                Socket recSocket = (Socket)result.AsyncState;
+                Client client = GetClientBySocket(recSocket);
 
-                int bytesReceived = clientSocket.EndReceive(result);
+                int bytesReceived = recSocket.EndReceive(result);
 
                 if (bytesReceived == 0)
                 {
-                    closeSocket(clientSocket);
-                    serverSocket.BeginAccept(new AsyncCallback(handleIncomingConnection), serverSocket);
+                    CloseSocket(recSocket);
+                    mainSocket.BeginAccept(new AsyncCallback(HandleIncomingConnection), mainSocket);
                 }
-
-                else if (data[0] < 0xF0)
+                else if (data[0] < 0xF0) //小於0xF0 表示為單字節(通常為英數字)
                 {
-                    string receivedData = client.getReceivedData();
+                    string receivedData = client.GetReceivedData();
 
-                    /* 0x2E = '.', 
-                       0x0D = carriage return, 
-                       0x0A = new line
-                    */
+                    // 0x2E = '.', 
+                    // 0x0D = carriage return, 
+                    // 0x0A = new line
                     if ((data[0] == 0x2E && data[1] == 0x0D && receivedData.Length == 0) ||
                         (data[0] == 0x0D && data[1] == 0x0A))
                     {
                         //sendMessageToSocket(clientSocket, "\u001B[1J\u001B[H");
-                        MessageReceived(client, client.getReceivedData());
-                        client.resetReceivedData();
+                        MessageReceived(client, client.GetReceivedData());
+                        client.ResetReceivedData();
                     }
-
                     else
                     {
                         // 0x08 => backspace character
@@ -353,41 +348,37 @@ namespace TelnetTest.Model
                         {
                             if (receivedData.Length > 0)
                             {
-                                client.removeLastCharacterReceived();
-                                sendBytesToSocket(clientSocket, new byte[] { 0x08, 0x20, 0x08 });
+                                client.RemoveLastCharacterReceived();
+                                SendBytesToSocket(recSocket, new byte[] { 0x08, 0x20, 0x08 });
                             }
 
                             else
-                                clientSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(receiveData), clientSocket);
+                                recSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(ReceiveData), recSocket);
                         }
-
                         // 0x7F => delete character
                         else if (data[0] == 0x7F)
-                            clientSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(receiveData), clientSocket);
-
+                            recSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(ReceiveData), recSocket);
                         else
                         {
-                            client.appendReceivedData(Encoding.GetEncoding("Big5").GetString(data, 0, bytesReceived));
+                            client.AppendReceivedData(Encoding.GetEncoding("Big5").GetString(data, 0, bytesReceived));
 
                             // Echo back the received character
                             // if client is not writing any password
-                            if (client.getCurrentStatus() != EClientStatus.Password)
-                                sendBytesToSocket(clientSocket, new byte[] { data[0] });
+                            if (client.GetCurrentStatus() != EClientStatus.Password)
+                                SendBytesToSocket(recSocket, new byte[] { data[0] });
 
                             // Echo back asterisks if client is
                             // writing a password
                             else
-                                sendMessageToSocket(clientSocket, "*");
+                                SendMessageToSocket(recSocket, "*");
 
-                            clientSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(receiveData), clientSocket);
+                            recSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(ReceiveData), recSocket);
                         }
                     }
                 }
-
                 else
-                    clientSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(receiveData), clientSocket);
+                    recSocket.BeginReceive(data, 0, dataSize, SocketFlags.None, new AsyncCallback(ReceiveData), recSocket);
             }
-
             catch { }
         }
     }

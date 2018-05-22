@@ -65,7 +65,7 @@ namespace TelnetTest.Model
         /// Gets the client identifier.
         /// </summary>
         /// <returns>Client's identifier.</returns>
-        public uint getClientID()
+        public uint GetClientID()
         {
             return id;
         }
@@ -74,7 +74,7 @@ namespace TelnetTest.Model
         /// Gets the remote address.
         /// </summary>
         /// <returns>Client's remote address.</returns>
-        public IPEndPoint getRemoteAddress()
+        public IPEndPoint GetRemoteAddress()
         {
             return remoteAddr;
         }
@@ -83,7 +83,7 @@ namespace TelnetTest.Model
         /// Gets the connection time.
         /// </summary>
         /// <returns>The connection time.</returns>
-        public DateTime getConnectionTime()
+        public DateTime GetConnectionTime()
         {
             return connectedAt;
         }
@@ -92,7 +92,7 @@ namespace TelnetTest.Model
         /// Gets the client's current status.
         /// </summary>
         /// <returns>The client's status.</returns>
-        public EClientStatus getCurrentStatus()
+        public EClientStatus GetCurrentStatus()
         {
             return status;
         }
@@ -101,7 +101,7 @@ namespace TelnetTest.Model
         /// Gets the client's last received data.
         /// </summary>
         /// <returns>Client's last received data.</returns>
-        public string getReceivedData()
+        public string GetReceivedData()
         {
             return receivedData;
         }
@@ -110,7 +110,7 @@ namespace TelnetTest.Model
         /// Sets the client's current status.
         /// </summary>
         /// <param name="newStatus">The new status.</param>
-        public void setStatus(EClientStatus newStatus)
+        public void SetStatus(EClientStatus newStatus)
         {
             this.status = newStatus;
         }
@@ -119,7 +119,7 @@ namespace TelnetTest.Model
         /// Sets the client's last received data.
         /// </summary>
         /// <param name="newReceivedData">The new received data.</param>
-        public void setReceivedData(string newReceivedData)
+        public void SetReceivedData(string newReceivedData)
         {
             this.receivedData = newReceivedData;
         }
@@ -129,7 +129,7 @@ namespace TelnetTest.Model
         /// received data.
         /// </summary>
         /// <param name="dataToAppend">The data to append.</param>
-        public void appendReceivedData(string dataToAppend)
+        public void AppendReceivedData(string dataToAppend)
         {
             this.receivedData += dataToAppend;
         }
@@ -138,7 +138,7 @@ namespace TelnetTest.Model
         /// Removes the last character from the
         /// client's last received data.
         /// </summary>
-        public void removeLastCharacterReceived()
+        public void RemoveLastCharacterReceived()
         {
             receivedData = receivedData.Substring(0, receivedData.Length - 1);
         }
@@ -146,7 +146,7 @@ namespace TelnetTest.Model
         /// <summary>
         /// Resets the last received data.
         /// </summary>
-        public void resetReceivedData()
+        public void ResetReceivedData()
         {
             receivedData = string.Empty;
         }

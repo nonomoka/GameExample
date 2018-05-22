@@ -14,12 +14,12 @@ namespace TelnetTest
 
         static void Main(string[] args)
         {
-            s = new Server(IPAddress.Any);
+            s = new Server(EConnectionType.Server,IPAddress.Any,23);
             s.ClientConnected += clientConnected;
             s.ClientDisconnected += clientDisconnected;
             s.ConnectionBlocked += connectionBlocked;
             s.MessageReceived += messageReceived;
-            s.start();
+            s.ServerStart();
 
             Console.WriteLine("SERVER STARTED: " + DateTime.Now);
 
@@ -28,14 +28,14 @@ namespace TelnetTest
                 ; // nothing really
             } while (Console.ReadKey(true).KeyChar != 'q');
 
-            s.stop();
+            s.Stop();
         }
 
         private static void clientConnected(Client c)
         {
             Console.WriteLine("CONNECTED: " + c);
 
-            s.sendMessageToClient(c, "Telnet Server\r\n歡迎進入這個世界:\r\nLogin: ");
+            s.SendMessageToClient(c, "Telnet Server\r\n歡迎進入這個世界:\r\nLogin: ");
         }
 
         private static void clientDisconnected(Client c)
@@ -54,20 +54,20 @@ namespace TelnetTest
 
             if (message.ToLower() != "quit")
             {
-                EClientStatus status = c.getCurrentStatus();
+                EClientStatus status = c.GetCurrentStatus();
 
-                switch (c.getCurrentStatus())
+                switch (c.GetCurrentStatus())
                 {
                     case EClientStatus.Login:
                         //TODO:帳號驗證 Default:nono
                         if (message == "nono")
                         {
-                            s.sendMessageToClient(c, "\r\nPassword: ");
-                            c.setStatus(EClientStatus.Password);
+                            s.SendMessageToClient(c, "\r\nPassword: ");
+                            c.SetStatus(EClientStatus.Password);
                         }
                         else
                         {
-                            s.sendMessageToClient(c, "\r\n帳號錯誤，請重新輸入!!\r\nLogin:");
+                            s.SendMessageToClient(c, "\r\n帳號錯誤，請重新輸入!!\r\nLogin:");
                         }
                         break;
 
@@ -75,22 +75,22 @@ namespace TelnetTest
                         //TODO:密碼驗證 Default:nono
                         if (message == "nono")
                         {
-                            s.sendMessageToClient(c, "\r\n登入成功\r\n");
-                            c.setStatus(EClientStatus.LoggedIn);
+                            s.SendMessageToClient(c, "\r\n登入成功\r\n");
+                            c.SetStatus(EClientStatus.LoggedIn);
                         }
                         else
                         {
-                            s.sendMessageToClient(c, "\r\n密碼錯誤，請重新輸入!!\r\nPassword:");
+                            s.SendMessageToClient(c, "\r\n密碼錯誤，請重新輸入!!\r\nPassword:");
                         }
                         break;
 
                      case EClientStatus.LoggedIn:
-                        s.sendMessageToClient(c, "\r\n你打啥我看不懂?!\r\n > ");
+                        s.SendMessageToClient(c, "\r\n你打啥我看不懂?!\r\n > ");
                         break;
                 } 
             }
             else
-                s.kickClient(c);
+                s.KickClient(c);
         }
     }
 }
