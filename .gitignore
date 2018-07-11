@@ -5,3 +5,5 @@ obj
 *.user
 *.vspscc
 *.vssscc
+/GameConsole/.vs/GameConsole/v15/Server/sqlite3
+/GameConsole/.vs

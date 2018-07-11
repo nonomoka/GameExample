@@ -11,8 +11,7 @@ namespace GameConsole
     {
         static void Main(string[] args)
         {
-            string aaa = "\"YaKUEjjcTErRbsI";
-            var test = System.Text.Encoding.Default.GetBytes(aaa);
+    
 
 
 
